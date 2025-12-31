@@ -1,0 +1,15 @@
+HTML_COMMENT=1
+LT_SLASH=2
+SLASH_GT=3
+LT=4
+GT=5
+EQ=6
+NAME=7
+STRING=8
+WS=9
+TEXT=10
+'</'=2
+'/>'=3
+'<'=4
+'>'=5
+'='=6
