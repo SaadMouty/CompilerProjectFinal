@@ -1,4 +1,5 @@
 grammar CssSubset;
+@header { package com.compiler.shop.generated; }
 
 stylesheet
   : rule* EOF

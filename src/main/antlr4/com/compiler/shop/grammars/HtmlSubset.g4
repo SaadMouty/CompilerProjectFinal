@@ -1,4 +1,5 @@
 grammar HtmlSubset;
+@header { package com.compiler.shop.generated; }
 
 document
   : node* EOF

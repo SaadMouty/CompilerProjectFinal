@@ -1,4 +1,5 @@
 grammar PythonSubset;
+@header { package com.compiler.shop.generated; }
 
 program
   : statement* EOF

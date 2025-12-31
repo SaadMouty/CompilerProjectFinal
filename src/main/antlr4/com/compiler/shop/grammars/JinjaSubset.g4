@@ -1,4 +1,5 @@
 grammar JinjaSubset;
+@header { package com.compiler.shop.generated; }
 
 /*
   Jinja2 Template Subset - NO MODES (Most stable in IntelliJ)
