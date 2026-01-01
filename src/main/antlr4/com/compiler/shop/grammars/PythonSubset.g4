@@ -17,8 +17,9 @@ simpleStatement
   ;
 
 assignment
-  : IDENTIFIER ASSIGN expr
+  : IDENTIFIER '=' expr
   ;
+
 
 exprStmt
   : funcCall
@@ -33,18 +34,26 @@ commandStmt
   ;
 
 funcCall
-  : IDENTIFIER LPAREN argList? RPAREN
+  : (IDENTIFIER
+    | ADD_PRODUCT
+    | GET_PRODUCTS
+    | GET_PRODUCT_DETAILS
+    | DELETE_PRODUCT
+    )
+    '(' argList? ')'
   ;
+
 
 argList
   : expr (COMMA expr)*
   ;
 
 expr
-  : literal
+  : funcCall
+  | literal
   | IDENTIFIER
-  | funcCall
   ;
+
 
 literal
   : STRING

@@ -2,8 +2,7 @@ package com.compiler.shop.visitor;
 
 import com.compiler.shop.ast.core.AstNode;
 import com.compiler.shop.ast.python.*;
-import com.compiler.shop.generated.PythonSubsetBaseVisitor;
-import com.compiler.shop.generated.PythonSubsetParser;
+import com.compiler.shop.generated.*;
 
 public class PythonAstBuilder extends PythonSubsetBaseVisitor<AstNode> {
 
@@ -37,7 +36,18 @@ public class PythonAstBuilder extends PythonSubsetBaseVisitor<AstNode> {
     public AstNode visitAssignment(PythonSubsetParser.AssignmentContext ctx) {
         int line = ctx.start.getLine();
         PyAssignNode node = new PyAssignNode(line, ctx.IDENTIFIER().getText());
-        node.addChild(visit(ctx.expr()));
+
+        // ✅ خذ RHS كآخر child من نوع ParserRuleContext (يتجاهل IDENTIFIER و '=')
+        AstNode rhs = null;
+        for (int i = ctx.getChildCount() - 1; i >= 0; i--) {
+            var ch = ctx.getChild(i);
+            if (ch instanceof org.antlr.v4.runtime.ParserRuleContext prc) {
+                rhs = visit(prc);
+                break;
+            }
+        }
+
+        if (rhs != null) node.addChild(rhs);
         return node;
     }
 
@@ -77,31 +87,39 @@ public class PythonAstBuilder extends PythonSubsetBaseVisitor<AstNode> {
     @Override
     public AstNode visitFuncCall(PythonSubsetParser.FuncCallContext ctx) {
         int line = ctx.start.getLine();
-        PyFuncCallNode call = new PyFuncCallNode(line, ctx.IDENTIFIER().getText());
+
+        String name;
+        if (ctx.IDENTIFIER() != null) name = ctx.IDENTIFIER().getText();
+        else name = ctx.getStart().getText(); // add_product / get_products / ...
+
+        PyFuncCallNode call = new PyFuncCallNode(line, name);
 
         if (ctx.argList() != null) {
             for (var e : ctx.argList().expr()) {
-                call.addChild(visit(e));
+                AstNode arg = visit(e);
+                if (arg != null) call.addChild(arg);
             }
         }
         return call;
     }
 
+
     @Override
     public AstNode visitExpr(PythonSubsetParser.ExprContext ctx) {
-        // depending on your python grammar (expr may include literal/IDENTIFIER/funcCall)
+        // ✅ expr عندك الآن: funcCall | literal | IDENTIFIER
+        if (ctx.funcCall() != null) return visit(ctx.funcCall());
         if (ctx.literal() != null) return visit(ctx.literal());
         if (ctx.IDENTIFIER() != null) return new PyIdentifierNode(ctx.start.getLine(), ctx.IDENTIFIER().getText());
-        if (ctx.funcCall() != null) return visit(ctx.funcCall());
         return null;
     }
 
     @Override
     public AstNode visitLiteral(PythonSubsetParser.LiteralContext ctx) {
         int line = ctx.start.getLine();
-        if (ctx.NUMBER() != null) {
-            return new PyNumberNode(line, Double.parseDouble(ctx.NUMBER().getText()));
+        if (ctx.STRING() != null) {
+            return new PyStringNode(line, AstUtil.stripQuotes(ctx.STRING().getText()));
         }
-        return new PyStringNode(line, AstUtil.stripQuotes(ctx.STRING().getText()));
+        // NUMBER
+        return new PyNumberNode(line, Double.parseDouble(ctx.NUMBER().getText()));
     }
 }

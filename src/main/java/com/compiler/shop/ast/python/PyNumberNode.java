@@ -1,13 +1,19 @@
 package com.compiler.shop.ast.python;
 
-import com.compiler.shop.ast.core.ValueNode;
+public class PyNumberNode extends PyExprNode {
+    private final double value;
 
-public class PyNumberNode extends ValueNode {
     public PyNumberNode(int lineNumber, double value) {
-        super("PyNumber", lineNumber, value);
+        super("PyNumber", lineNumber);
+        this.value = value;
     }
 
     public double getNumber() {
-        return (double) getValue();
+        return value;
+    }
+
+    @Override
+    public String label() {
+        return getNodeType() + "(" + value + ")";
     }
 }
